@@ -18,10 +18,11 @@ public class OrderController{
 
     private final OrderService orderService;
 
-    @PostMapping
+    @GetMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public OrderResponse createOrder(OrderRequest orderRequest) {
+    public OrderResponse createOrder(@RequestBody OrderRequest orderRequest) {
         return orderService.createOrder(orderRequest);
+//        return orderService.createOrder(productId,quantity);
     }
 
     @GetMapping
