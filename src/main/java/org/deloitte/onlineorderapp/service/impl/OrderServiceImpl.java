@@ -6,6 +6,7 @@ import org.deloitte.onlineorderapp.dto.OrderRequest;
 import org.deloitte.onlineorderapp.dto.OrderResponse;
 import org.deloitte.onlineorderapp.dto.ProductResponse;
 import org.deloitte.onlineorderapp.entity.Order;
+import org.deloitte.onlineorderapp.exception.OrderServiceException;
 import org.deloitte.onlineorderapp.repository.OrderRepository;
 import org.deloitte.onlineorderapp.service.OrderService;
 
@@ -26,51 +27,48 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderResponse createOrder(OrderRequest orderRequest) {
+        try {
+            ProductResponse product = productClient.getProduct(orderRequest.getProductId());
 
-        ProductResponse product = productClient.getProduct(orderRequest.getProductId());
+            if (product == null) {
+                throw new OrderServiceException("Product not found with id: " + orderRequest.getProductId());
+            }
 
-        Order order = new Order();
-        order.setProductId(orderRequest.getProductId());
-        order.setQuantity(orderRequest.getQuantity());
-        order.setTotalPrice(BigDecimal.valueOf(product.getPrice() * orderRequest.getQuantity()));
+            Order order = modelMapper.map(orderRequest, Order.class);
+            order.setTotalPrice(BigDecimal.valueOf(product.getPrice() * orderRequest.getQuantity()));
 
-        Order saved = orderRepository.save(order);
-        return modelMapper.map(saved, OrderResponse.class);
-
-
-       // Order order = modelMapper.map(orderRequest, Order.class);
-
-//        ProductResponse product = productClient.getProduct(productId);
-//        Order order = modelMapper.map(product,Order.class);
-//
-//        Order savedOrder =  orderRepository.save(order);
-//        return modelMapper.map(savedOrder,ProductResponse.class);
-
-
-//        BigDecimal unitPrice = BigDecimal.valueOf(100);
-//        BigDecimal totalPrice = unitPrice.multiply(BigDecimal.valueOf(orderRequest.quantity()));
-//
-//        order.setTotalPrice(totalPrice);
-//        order.setStatus(OrderStatus.CREATED);
-//        order.setCreatedAt(LocalDateTime.now());
-//
-//        Order savedOrder = orderRepository.save(order);
-//        return modelMapper.map(savedOrder, OrderResponse.class);
+            Order saved = orderRepository.save(order);
+            return modelMapper.map(saved, OrderResponse.class);
+        } catch (OrderServiceException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new OrderServiceException("Failed to create order", e);
+        }
     }
 
     @Override
     public List<OrderResponse> getAllOrders() {
-        return orderRepository.findAll()
-                .stream()
-                .map(order -> modelMapper.map(order, OrderResponse.class))
-                .toList();
+        try {
+            return orderRepository.findAll()
+                    .stream()
+                    .map(order -> modelMapper.map(order, OrderResponse.class))
+                    .toList();
+        } catch (OrderServiceException e) {
+            throw new OrderServiceException("Failed to retrieve all orders", e);
+        }
     }
 
     @Override
     public OrderResponse getOrderById(Long id) {
-        Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
+        try {
+            Order order = orderRepository.findById(id)
+                    .orElseThrow(() -> new OrderServiceException("Order not found with id: " + id));
 
-        return modelMapper.map(order, OrderResponse.class);
+            return modelMapper.map(order, OrderResponse.class);
+        } catch (OrderServiceException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new OrderServiceException("Failed to retrieve order with id: " + id, e);
+        }
     }
 }
