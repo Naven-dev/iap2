@@ -22,7 +22,7 @@ public class OrderController{
     @ResponseStatus(HttpStatus.CREATED)
     public OrderResponse createOrder(@RequestBody OrderRequest orderRequest) {
         return orderService.createOrder(orderRequest);
-//        return orderService.createOrder(productId,quantity);
+
     }
 
     @GetMapping
@@ -30,7 +30,7 @@ public class OrderController{
         return orderService.getAllOrders();
     }
 
-    @GetMapping("/id")
+    @GetMapping("/{id}")
     public OrderResponse getOrderById(@PathVariable Long id) {
         return orderService.getOrderById(id);
     }
