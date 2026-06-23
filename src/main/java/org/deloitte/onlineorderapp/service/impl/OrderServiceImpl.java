@@ -39,7 +39,8 @@ public class OrderServiceImpl implements OrderService {
 
             Order order = modelMapper.map(orderRequest, Order.class);
             order.setId(null);
-            order.setTotalPrice(BigDecimal.valueOf(product.getPrice() * orderRequest.getQuantity()));
+            //order.setTotalPrice(BigDecimal.valueOf(product.getPrice() * orderRequest.getQuantity()));
+            order.setTotalPrice(product.getPrice().multiply(BigDecimal.valueOf(orderRequest.getQuantity())));
             order.setStatus(OrderStatus.CREATED);
 
             Order saved = orderRepository.save(order);

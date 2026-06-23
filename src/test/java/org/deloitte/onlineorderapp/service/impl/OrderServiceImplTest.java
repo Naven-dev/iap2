@@ -42,9 +42,10 @@ class OrderServiceImplTest {
         req.setProductId(1L);
         req.setQuantity(2);
 
+        // 1. ALTERED: ProductResponse price must be a BigDecimal
         ProductResponse product = new ProductResponse();
         product.setId(1L);
-        product.setPrice(10.0);
+        product.setPrice(new BigDecimal("10.0")); // Changed from 10.0 (Double) to BigDecimal
 
         Order mappedOrder = new Order();
         mappedOrder.setProductId(1L);
@@ -54,13 +55,14 @@ class OrderServiceImplTest {
         savedOrder.setId(100L);
         savedOrder.setProductId(1L);
         savedOrder.setQuantity(2);
-        savedOrder.setTotalPrice(BigDecimal.valueOf(20.0));
+        // Correct BigDecimal representation
+        savedOrder.setTotalPrice(new BigDecimal("20.00"));
 
         OrderResponse response = new OrderResponse();
         response.setId(100L);
         response.setProductId(1L);
         response.setQuantity(2);
-        response.setTotalPrice(BigDecimal.valueOf(20.0));
+        response.setTotalPrice(new BigDecimal("20.00"));
 
         when(productClient.getProduct(1L)).thenReturn(product);
         when(modelMapper.map(req, Order.class)).thenReturn(mappedOrder);
@@ -71,7 +73,9 @@ class OrderServiceImplTest {
 
         assertNotNull(actual);
         assertEquals(100L, actual.getId());
-        assertEquals(BigDecimal.valueOf(20.0), actual.getTotalPrice());
+
+        // Use compareTo instead of equals for BigDecimal assertions to avoid scale mismatch errors (.equals checks scale)
+        assertEquals(0, new BigDecimal("20.00").compareTo(actual.getTotalPrice()));
 
         verify(productClient).getProduct(1L);
         verify(orderRepository).save(mappedOrder);
@@ -176,4 +180,3 @@ class OrderServiceImplTest {
         assertSame(cause, ex.getCause());
     }
 }
-
