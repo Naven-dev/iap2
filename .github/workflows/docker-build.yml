@@ -38,11 +38,11 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          # Converts repository owner name to lowercase to prevent tag failures with mixed-case usernames
-          OWNER_LC=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          # Converts repository owner name to lowercase strictly using a YAML-safe translation command
+          OWNER_LC=$(echo "${{ github.repository_owner }}" | tr 'A-Z' 'a-z')
           docker build -t ghcr.io/${OWNER_LC}/order-api:latest .
 
       - name: Push Docker Image
         run: |
-          OWNER_LC=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          OWNER_LC=$(echo "${{ github.repository_owner }}" | tr 'A-Z' 'a-z')
           docker push ghcr.io/${OWNER_LC}/order-api:latest
